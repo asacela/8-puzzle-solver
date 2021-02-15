@@ -1,22 +1,13 @@
 # CS 170 Project
-# 	8-puzzle Solver using search methods
-# Problems: game driver code working
-# 	uc uses incorrect heuristic function
-# 	manhattan distance not fully written
-# 	astar misplaced written, but not working
-# Solutions: replace my queue implementation
-# 	with priority queue python built in
-# 	finish manhattan distance
-
-import copy, time
-from enum import Enum 
-from queue import PriorityQueue 
+# 8-puzzle Solver using search methods
+import queue, copy, time
+from enum import Enum  
 
 # Game Engine
 class game:
 
 	# Initialize
-	def __init__(self, init_state=['1', '2', '3', '4', '5', '6', '7', '8', ' '], algorithm='uniform'):
+	def __init__(self, init_state=['1', '2', '3', '4', '5', '6', '7', '8', ' ']):
 
 
 		self.board = init_state
@@ -29,9 +20,8 @@ class game:
 				self.empty_index = x
 
 		# AI Variables
-		self.algorithm = algorithm
 		self.cost = 0
-		self.f_n = 0
+
 
 	# Operators
 	def move_down(self):
@@ -183,30 +173,20 @@ class game:
 	def print(self):
 
 		print('\n')
-		print(self.board[0] + '|' + self.board[1] + '|' + self.board[2])
-		print('-+-+-')
-		print(self.board[3] + '|' + self.board[4] + '|' + self.board[5])
-		print('-+-+-')
-		print(self.board[6] + '|' + self.board[7] + '|' + self.board[8])
+		print('\t\t' + self.board[0] + '|' + self.board[1] + '|' + self.board[2])
+		print('\t\t' + '-+-+-')
+		print('\t\t' + self.board[3] + '|' + self.board[4] + '|' + self.board[5])
+		print('\t\t' + '-+-+-')
+		print('\t\t' + self.board[6] + '|' + self.board[7] + '|' + self.board[8])
 		print('\n')
 
-	# Compare
-	def __lt__(self, other):
-		if self.algorithm == 'uniform':
-			# print(str(self.cost) + " <= " + str(other.cost))
-			# exit()
-			return self.cost <= other.cost
-
-		elif self.algorithm == 'astar':
-			return self.f_n < other.f_n
 # AI Search Algorithms
 class ai:
 
 	# Initialize
 	def __init__(self, board=None):
 		self.my_game = game(board)
-		self.my_game.print()
-		self.nodes = PriorityQueue()
+		self.nodes = list()
 		self.visited = list()
 
 	# Utility
@@ -219,13 +199,17 @@ class ai:
 				return False
 
 		return True
+	def reset(self, board):
+		self.my_game = game(board)
+		self.nodes = list()
+		self.visited = list()
 
 	# Expansion
 	def expand(self, node):
 		
 		if self.nodes is None:
 
-			self.nodes = PriorityQueue()
+			self.nodes = list()
 
 
 		tempGame = copy.deepcopy(node)
@@ -234,7 +218,7 @@ class ai:
 
 
 			if self.visited_check(tempGame):
-				self.nodes.put((tempGame.cost, tempGame))
+				self.nodes.append(tempGame)
 				tempGame.cost += 1
 			tempGame = copy.deepcopy(node)
 
@@ -242,7 +226,7 @@ class ai:
 		if tempGame.move_down():
 
 			if self.visited_check(tempGame):
-				self.nodes.put((tempGame.cost, tempGame))
+				self.nodes.append(tempGame)
 				tempGame.cost += 1
 			tempGame = copy.deepcopy(node)
 
@@ -250,48 +234,50 @@ class ai:
 		if tempGame.move_left():
 
 			if self.visited_check(tempGame):
-				self.nodes.put((tempGame.cost, tempGame))
+				self.nodes.append(tempGame)
 				tempGame.cost += 1
 			tempGame = copy.deepcopy(node)
 
 		if tempGame.move_right():
 
 			if self.visited_check(tempGame):
-				self.nodes.put((tempGame.cost, tempGame))
+				self.nodes.append(tempGame)
 				tempGame.cost += 1
 			tempGame = copy.deepcopy(node)
 	def expand_a_star(self, node):
 		
 		if self.nodes is None:
 
-			self.nodes = PriorityQueue()
+			self.nodes = list()
 
 
 		tempGame = copy.deepcopy(node)
 
 		if tempGame.move_up():
 
-			self.nodes.put((self.a_star_cost(tempGame), tempGame))
+			self.nodes.append(tempGame)
 			tempGame.cost += 1
 			tempGame = copy.deepcopy(node)
 
 
 		if tempGame.move_down():
 
-			self.nodes.put((self.a_star_cost(tempGame), tempGame))
+			self.nodes.append(tempGame)
 			tempGame.cost += 1
 			tempGame = copy.deepcopy(node)
 
 
 		if tempGame.move_left():
 
-			self.nodes.put((self.a_star_cost(tempGame), tempGame))
+
+			self.nodes.append(tempGame)
 			tempGame.cost += 1
 			tempGame = copy.deepcopy(node)
 
 		if tempGame.move_right():
 
-			self.nodes.put((self.a_star_cost(tempGame), tempGame))
+
+			self.nodes.append(tempGame)
 			tempGame.cost += 1
 			tempGame = copy.deepcopy(node)
 
@@ -316,11 +302,16 @@ class ai:
 		y = "12345678 "
 
 		for a in range(0, 9):
-			x_position = int(x.index(y[a]))
+
+			if x[a] == " ":
+				x_position = 9
+			else:
+				x_position = int(x[a])
 			y_position = a
-			h = abs(x_position - y_position)
+			h += abs(x_position - y_position)
+
 		return h
-	def a_star_cost(self, node, mode='misplaced'):
+	def g_cost(self, node, mode='misplaced'):
 
 		g = self.heuristic_mis(node) + node.cost
 
@@ -336,37 +327,43 @@ class ai:
 	# Search Algorithms
 	def uniform_cost(self, my_game=None):
 
+
+
 		if my_game is None:
 
 			my_game = self.my_game
 
+		# my_game.print()
+
 		# Initialize Variables
-		self.nodes.put((my_game.cost, my_game))
+		self.nodes.append(my_game)
 		min_index = 0
 		level_count = 0
 
-		print("Starting Search...")
+		# print("Starting Search...")
 		# Start Search
 		while True:
 
-			if self.nodes.qsize() == 0:
-				print("Failure. Impossible to solve...")
-				return False
+			if len(self.nodes) == 0:
+				print("\tFailure. Impossible to solve...")
+				return None
 
 			# Pop Smallest from Nodes, Append to Visited
-			_, node = self.nodes.get()
-			self.visited.append(node) # maybe replace with hash
+			min_index, _  = min(enumerate(self.nodes), key=lambda x : self.cost(x[1]))
+			node = self.nodes.pop(min_index)
+			self.visited.append(node)
 
 			# Check if Game Over
-			if my_game.game_over(my_game.get_current_result(node.board)):
-				print("Found Game Winning Node. Took " + str(level_count) + " Levels...")
-				return True
+			if node.game_over(node.get_current_result(node.board)):
+				# node.print()				
+				print("\t\tGame Over. Found Game Winning Node...")
+				print("\t\tTook " + str(node.cost) + " Levels...")
+				return node
 			
 			# Expand Popped Node
 			self.expand(node)
-			node.print()
-			print("Cost: " + str(node.cost))
-			print("iter: " + str(level_count))
+			# print('Num Levels: ' + str(self.cost(node)))
+			# print(level_count)
 			level_count += 1
 	def a_star_mis(self, my_game=None):
 
@@ -374,59 +371,79 @@ class ai:
 
 			my_game = self.my_game
 
+		# my_game.print()
+
 		# Initialize Variables
-		self.nodes.put(my_game)
+		self.nodes.append(my_game)
 		min_index = 0
 		level_count = 0
 
-		print("Starting Search...")
+		# print("Starting Search...")
 
 		# Start Search
 		while True:
 
-			if self.nodes.qsize() == 0:
+			if len(self.nodes) == 0:
 				print("Failure. Impossible to solve...")
-				return False
+				return None
 
 			# Pop Smallest from Nodes, Append to Visited
-			_, node = self.nodes.get()
+			min_index, _  = min(enumerate(self.nodes), key=lambda x : self.g_cost(x[1]))
+			node = self.nodes.pop(min_index)
+			# self.visited.append(node)
 
 			# Check if Game Over
-			if my_game.game_over(my_game.get_current_result(node.board)):
-				print("Found Game Winning Node. Took " + str(level_count) + " Levels...")
-				return True
+			if node.game_over(node.get_current_result(node.board)):
+				# node.print()				
+				print("\t\tGame Over. Found Game Winning Node...")
+				print("\t\tTook " + str(node.cost) + " Levels...")
+				return node
 
 			# Expand Popped Node
 			self.expand(node)
+			# node.print()
+			# print('Node Level: ' + str(node.cost))
+			# print('Heuristic: ' + str(self.heuristic_mis(node)))
+			# print(level_count)
 			level_count += 1
 	def a_star_man(self, my_game=None):
+
 		if my_game is None:
 
 			my_game = self.my_game
 
+		# my_game.print()
+
 		# Initialize Variables
-		self.nodes.put(my_game)
+		self.nodes.append(my_game)
 		min_index = 0
 		level_count = 0
 
-		print("Starting Search...")
+		# print("Starting Search...")
 
 		# Start Search
 		while True:
 
-			if self.nodes.qsize() == 0:
-				return False
+			if len(self.nodes) == 0:
+				return None
 
 			# Pop Smallest from Nodes, Append to Visited
-			_, node = self.nodes.get()
+			min_index, _  = min(enumerate(self.nodes), key=lambda x : self.g_cost(x[1], 'manhattan'))
+			node = self.nodes.pop(min_index)
+			self.visited.append(node)
 
 			# Check if Game Over
-			if my_game.game_over(my_game.get_current_result(node.board)):
-				print("Found Game Winning Node. Took " + str(level_count) + " Levels...")
-				return True
+			if node.game_over(node.get_current_result(node.board)):
+				# node.print()				
+				print("\t\tGame Over. Found Game Winning Node...")
+				print("\t\tTook " + str(node.cost) + " Levels...")
+				return node
 
 			# Expand Popped Node
 			self.expand(node)
+			# node.print()
+			# print('Heuristic: ' + str(self.g_cost(node, 'manhattan')))
+			# print(len(self.nodes))
 			level_count += 1
 
 # Utility Testing
@@ -490,27 +507,61 @@ def start_game():
 	print('Starting w/ Sequence: ')
 	new_game = game(shuffling_testing())
 	return new_game
+def test_sequence(sequence, depth):
 
+	my_ai = ai(sequence)
+
+
+	print("\nTesting " + str(depth) + "-Level Sequence:")
+	game(sequence).print()
+
+	print("\n\tUniform Cost:\n")
+	start = time.time()
+	assert (my_ai.uniform_cost()).cost == depth, "*** Depths Not Equal! Incorrect! ***"
+	end = time.time()
+	print("\t\tElapsed Time: " + str(end - start))
+
+	print("\n\tA* Misplaced:\n")
+	my_ai.reset(sequence)
+	start = time.time()
+	assert (my_ai.a_star_mis()).cost == depth, "*** Depths Not Equal! Incorrect! ***"
+	end = time.time()
+	print("\t\tElapsed Time: " + str(end - start))
+
+	print("\n\tA* Manhattan:\n")
+	my_ai.reset(sequence)
+	start = time.time()
+	assert (my_ai.a_star_man()).cost == depth, "*** Depths Not Equal! Incorrect! ***"
+	end = time.time()
+	print("\t\tElapsed Time: " + str(end - start))
 
 # Main 
 def main():
 
 	print('Main...')
+	print('Starting Test...')
 
-	# Sequences to Test
-	x = '856314 27'
-	# x = '671345 82'
+	sequence = '12345678 '
+	depth = 0
+	test_sequence(sequence, depth)
 
-	# Test Uniform Cost Search
-	my_ai = ai(x)
-	my_ai.uniform_cost()
+	sequence = '123456 78'
+	depth = 2
+	test_sequence(sequence, depth)
 
+	sequence = '1235 6478'
+	depth = 4
+	test_sequence(sequence, depth)
 
-	# Test A Star Misplaced Search
-	# x = shuffling_testing()
-	# my_ai = ai(x)
-	# my_ai.a_star_mis()
+	sequence = '1365 2478'
+	depth = 8
+	test_sequence(sequence, depth)
 
+	sequence = '1365 7482'
+	depth = 12
+	test_sequence(sequence, depth)
+
+	print('Testing Over...')
 
 if __name__ == "__main__":
     main()
