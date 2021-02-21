@@ -34,17 +34,11 @@ class game:
 
 		if ((empty_index + 1) < 4):
 
-			# print("Invalid. Can't Move Down...")
-
 			return False
-
 		else:
-
-			# print("Moving Down...")
 
 			self.board[empty_index], self.board[empty_index - 3] = self.board[empty_index - 3], self.board[empty_index] 
 			self.empty_index = empty_index - 3
-
 			return True
 	def move_up(self):
 
@@ -52,17 +46,11 @@ class game:
 
 		if ((empty_index + 1) > 6):
 
-			# print("Invalid. Can't Move Up...")
-
 			return False
-
 		else:
-
-			# print("Moving Up...")
 
 			self.board[empty_index], self.board[empty_index + 3] = self.board[empty_index + 3], self.board[empty_index] 
 			self.empty_index = empty_index + 3
-
 			return True
 	def move_left(self):
 
@@ -71,16 +59,11 @@ class game:
 
 		if((empty_index + 1) % 3 != 0):
 
-			# print("Moving Left...")
-
 			self.board[empty_index], self.board[empty_index + 1] = self.board[empty_index + 1], self.board[empty_index] 
 			self.empty_index = empty_index + 1
-
 			return True
 
 		else:
-
-			# print("Invalid. Can't Move Left...")
 
 			return False
 	def move_right(self):
@@ -89,15 +72,11 @@ class game:
 
 		if((empty_index + 1) % 3 != 1):
 
-			# print("Moving Right...")
-
 			self.board[empty_index], self.board[empty_index - 1] = self.board[empty_index - 1], self.board[empty_index] 
 			self.empty_index = empty_index - 1
 			return True
 
 		else:
-
-			# print("Invalid. Can't Move Right...")
 
 			return False
 
@@ -109,7 +88,6 @@ class game:
 
 		str_sum = ''
 
-		# print(my_board)
 		for x in range(0, len(my_board)):
 
 			str_sum += my_board[x]
@@ -123,6 +101,7 @@ class game:
 			return True
 
 		else:
+
 			return False
 
 	# testing functions
@@ -130,8 +109,6 @@ class game:
 
 		result = get_current_result()
 		correct = get_current_result(new_board)
-
-
 		assert result == correct, "Result should be" + correct + "but was " + result
 	def shuffling(self):
 
@@ -198,9 +175,7 @@ class ai:
 	def visited_check(self, node):
 
 		for i in self.visited:
-
 			if i.get_current_result() == node.get_current_result():
-
 				return False
 
 		return True
@@ -214,14 +189,11 @@ class ai:
 	def expand(self, node):
 		
 		if self.nodes is None:
-
 			self.nodes = list()
-
 
 		tempGame = copy.deepcopy(node)
 
 		if tempGame.move_up():
-
 
 			if self.visited_check(tempGame):
 				self.nodes.append(tempGame)
@@ -257,9 +229,7 @@ class ai:
 	def expand_a_star(self, node):
 		
 		if self.nodes is None:
-
 			self.nodes = list()
-
 
 		tempGame = copy.deepcopy(node)
 
@@ -281,14 +251,12 @@ class ai:
 
 		if tempGame.move_left():
 
-
 			self.nodes.append(tempGame)
 			tempGame.cost += 1
 			self.expanded_nodes += 1
 			tempGame = copy.deepcopy(node)
 
 		if tempGame.move_right():
-
 
 			self.nodes.append(tempGame)
 			tempGame.cost += 1
@@ -299,7 +267,6 @@ class ai:
 	def heuristic_mis(self, node):
 
 		h = 0
-
 		x = node.get_current_result(node.board)
 		y = "12345678 "
 
@@ -311,7 +278,6 @@ class ai:
 	def heuristic_man(self, node):
 
 		h = 0
-
 		x = node.get_current_result(node.board)
 		y = "12345678 "
 
@@ -328,7 +294,6 @@ class ai:
 	def g_cost(self, node, mode='misplaced'):
 
 		g = self.heuristic_mis(node) + node.cost
-
 		if mode == 'manhattan':
 			g = self.heuristic_man(node) + node.cost
 
@@ -345,15 +310,11 @@ class ai:
 
 			my_game = self.my_game
 
-		# my_game.print()
-
 		# Initialize Variables
 		self.expanded_nodes = 0
 		self.nodes.append(my_game)
 		min_index = 0
-		level_count = 0
 
-		# print("Starting Search...")
 		# Start Search
 		while True:
 
@@ -381,26 +342,18 @@ class ai:
 			
 			# Expand Popped Node
 			self.expand(node)
-			# print('Num Levels: ' + str(self.cost(node)))
-			# print(level_count)
 			print('\t\tThe best state to expand with a g(n) = ' + str(self.cost(node)))
 			node.print()
-			level_count += 1
 	def a_star_mis(self, my_game=None):
 
 		if my_game is None:
 
 			my_game = self.my_game
 
-		# my_game.print()
-
 		# Initialize Variables
 		self.expanded_nodes = 0
 		self.nodes.append(my_game)
 		min_index = 0
-		level_count = 0
-
-		# print("Starting Search...")
 
 		# Start Search
 		while True:
@@ -428,28 +381,18 @@ class ai:
 
 			# Expand Popped Node
 			self.expand(node)
-			# node.print()
-			# print('Node Level: ' + str(node.cost))
-			# print('Heuristic: ' + str(self.heuristic_mis(node)))
-			# print(level_count)
 			print('\t\tThe best state to expand with a g(n) = ' + str(self.cost(node)) + ' and h(n) = ' + str(self.heuristic_mis(node)))
-			# node.print()
-			level_count += 1
+			node.print()
 	def a_star_man(self, my_game=None):
 
 		if my_game is None:
 
 			my_game = self.my_game
 
-		# my_game.print()
-
 		# Initialize Variables
 		self.expanded_nodes = 0
 		self.nodes.append(my_game)
 		min_index = 0
-		level_count = 0
-
-		# print("Starting Search...")
 
 		# Start Search
 		while True:
@@ -477,11 +420,8 @@ class ai:
 
 			# Expand Popped Node
 			self.expand(node)
-			# print('Heuristic: ' + str(self.g_cost(node, 'manhattan')))
-			# print(len(self.nodes))
 			print('\t\tThe best state to expand with a g(n) = ' + str(self.cost(node)) + ' and h(n) = ' + str(self.heuristic_mis(node)))
-			# node.print()
-			level_count += 1
+			node.print()
 
 # evaluates search algorithms performance 
 def evaluate_ai(sequence, depth):
