@@ -1,12 +1,17 @@
-# CS 170 Project
-# 8-puzzle Solver using search methods
-import queue, copy, time
+"""
+CS 170 Project
+Alec Asatoorian, 862026505
+8-puzzle Solver using search algorithms
+	Uniform Cost Search, A* Misplaced Tile Search,
+	A* Manhattan Distance Search
+"""
+import copy, time
 from enum import Enum  
 
-# Game Engine
+# game engine class for 8-Puzzle
 class game:
 
-	# Initialize
+	# initialize a game board
 	def __init__(self, init_state=['1', '2', '3', '4', '5', '6', '7', '8', ' ']):
 
 
@@ -22,8 +27,7 @@ class game:
 		# AI Variables
 		self.cost = 0
 
-
-	# Operators
+	# game operators
 	def move_down(self):
 
 		empty_index = self.empty_index
@@ -97,8 +101,7 @@ class game:
 
 			return False
 
-	# Utility Functions
-	# Verification
+	# utility functions
 	def get_current_result(self, my_board=None):
 
 		if(my_board == None):
@@ -122,7 +125,7 @@ class game:
 		else:
 			return False
 
-	# Testing
+	# testing functions
 	def operator_test(self, new_board):
 
 		result = get_current_result()
@@ -169,7 +172,7 @@ class game:
 		# self.print()
 		return board
 
-	# Display
+	# display game board 
 	def print(self):
 
 		print('\n')
@@ -180,16 +183,18 @@ class game:
 		print('\t\t' + self.board[6] + '|' + self.board[7] + '|' + self.board[8])
 		print('\n')
 
-# AI Search Algorithms
+# search algorithm class
 class ai:
 
-	# Initialize
+	# initialize the ai class
 	def __init__(self, board=None):
 		self.my_game = game(board)
 		self.nodes = list()
 		self.visited = list()
+		self.expanded_nodes = 0
+		self.max_nodes = 0
 
-	# Utility
+	# utility functions
 	def visited_check(self, node):
 
 		for i in self.visited:
@@ -203,8 +208,9 @@ class ai:
 		self.my_game = game(board)
 		self.nodes = list()
 		self.visited = list()
+		self.max_nodes = 0
 
-	# Expansion
+	# search algorithm expansion functions
 	def expand(self, node):
 		
 		if self.nodes is None:
@@ -220,6 +226,7 @@ class ai:
 			if self.visited_check(tempGame):
 				self.nodes.append(tempGame)
 				tempGame.cost += 1
+				self.expanded_nodes += 1
 			tempGame = copy.deepcopy(node)
 
 
@@ -228,6 +235,7 @@ class ai:
 			if self.visited_check(tempGame):
 				self.nodes.append(tempGame)
 				tempGame.cost += 1
+				self.expanded_nodes += 1
 			tempGame = copy.deepcopy(node)
 
 
@@ -236,6 +244,7 @@ class ai:
 			if self.visited_check(tempGame):
 				self.nodes.append(tempGame)
 				tempGame.cost += 1
+				self.expanded_nodes += 1
 			tempGame = copy.deepcopy(node)
 
 		if tempGame.move_right():
@@ -243,6 +252,7 @@ class ai:
 			if self.visited_check(tempGame):
 				self.nodes.append(tempGame)
 				tempGame.cost += 1
+				self.expanded_nodes += 1
 			tempGame = copy.deepcopy(node)
 	def expand_a_star(self, node):
 		
@@ -257,6 +267,7 @@ class ai:
 
 			self.nodes.append(tempGame)
 			tempGame.cost += 1
+			self.expanded_nodes += 1
 			tempGame = copy.deepcopy(node)
 
 
@@ -264,6 +275,7 @@ class ai:
 
 			self.nodes.append(tempGame)
 			tempGame.cost += 1
+			self.expanded_nodes += 1
 			tempGame = copy.deepcopy(node)
 
 
@@ -272,6 +284,7 @@ class ai:
 
 			self.nodes.append(tempGame)
 			tempGame.cost += 1
+			self.expanded_nodes += 1
 			tempGame = copy.deepcopy(node)
 
 		if tempGame.move_right():
@@ -279,9 +292,10 @@ class ai:
 
 			self.nodes.append(tempGame)
 			tempGame.cost += 1
+			self.expanded_nodes += 1
 			tempGame = copy.deepcopy(node)
 
-	# Heuristic Calculator
+	# heuristic calculations
 	def heuristic_mis(self, node):
 
 		h = 0
@@ -324,10 +338,8 @@ class ai:
 		g = node.cost
 		return g
 
-	# Search Algorithms
+	# search algorithm implementation
 	def uniform_cost(self, my_game=None):
-
-
 
 		if my_game is None:
 
@@ -336,6 +348,7 @@ class ai:
 		# my_game.print()
 
 		# Initialize Variables
+		self.expanded_nodes = 0
 		self.nodes.append(my_game)
 		min_index = 0
 		level_count = 0
@@ -348,6 +361,10 @@ class ai:
 				print("\tFailure. Impossible to solve...")
 				return None
 
+
+			if len(self.nodes) > self.max_nodes:
+				self.max_nodes = len(self.nodes)
+
 			# Pop Smallest from Nodes, Append to Visited
 			min_index, _  = min(enumerate(self.nodes), key=lambda x : self.cost(x[1]))
 			node = self.nodes.pop(min_index)
@@ -358,12 +375,16 @@ class ai:
 				# node.print()				
 				print("\t\tGame Over. Found Game Winning Node...")
 				print("\t\tTook " + str(node.cost) + " Levels...")
+				print("\t\tExpanded " + str(self.expanded_nodes) + " Nodes...")
+				print("\t\tMax number of nodes in list: " + str(self.max_nodes))
 				return node
 			
 			# Expand Popped Node
 			self.expand(node)
 			# print('Num Levels: ' + str(self.cost(node)))
 			# print(level_count)
+			print('\t\tThe best state to expand with a g(n) = ' + str(self.cost(node)))
+			node.print()
 			level_count += 1
 	def a_star_mis(self, my_game=None):
 
@@ -374,6 +395,7 @@ class ai:
 		# my_game.print()
 
 		# Initialize Variables
+		self.expanded_nodes = 0
 		self.nodes.append(my_game)
 		min_index = 0
 		level_count = 0
@@ -387,16 +409,21 @@ class ai:
 				print("Failure. Impossible to solve...")
 				return None
 
+			if len(self.nodes) > self.max_nodes:
+				self.max_nodes = len(self.nodes)
+
 			# Pop Smallest from Nodes, Append to Visited
 			min_index, _  = min(enumerate(self.nodes), key=lambda x : self.g_cost(x[1]))
 			node = self.nodes.pop(min_index)
-			# self.visited.append(node)
+			self.visited.append(node)
 
 			# Check if Game Over
 			if node.game_over(node.get_current_result(node.board)):
 				# node.print()				
 				print("\t\tGame Over. Found Game Winning Node...")
 				print("\t\tTook " + str(node.cost) + " Levels...")
+				print("\t\tExpanded " + str(self.expanded_nodes) + " Nodes...")
+				print("\t\tMax number of nodes in list: " + str(self.max_nodes))
 				return node
 
 			# Expand Popped Node
@@ -405,6 +432,8 @@ class ai:
 			# print('Node Level: ' + str(node.cost))
 			# print('Heuristic: ' + str(self.heuristic_mis(node)))
 			# print(level_count)
+			print('\t\tThe best state to expand with a g(n) = ' + str(self.cost(node)) + ' and h(n) = ' + str(self.heuristic_mis(node)))
+			# node.print()
 			level_count += 1
 	def a_star_man(self, my_game=None):
 
@@ -415,6 +444,7 @@ class ai:
 		# my_game.print()
 
 		# Initialize Variables
+		self.expanded_nodes = 0
 		self.nodes.append(my_game)
 		min_index = 0
 		level_count = 0
@@ -427,6 +457,9 @@ class ai:
 			if len(self.nodes) == 0:
 				return None
 
+			if len(self.nodes) > self.max_nodes:
+				self.max_nodes = len(self.nodes)
+
 			# Pop Smallest from Nodes, Append to Visited
 			min_index, _  = min(enumerate(self.nodes), key=lambda x : self.g_cost(x[1], 'manhattan'))
 			node = self.nodes.pop(min_index)
@@ -437,77 +470,21 @@ class ai:
 				# node.print()				
 				print("\t\tGame Over. Found Game Winning Node...")
 				print("\t\tTook " + str(node.cost) + " Levels...")
+				print("\t\tExpanded " + str(self.expanded_nodes) + " Nodes...")
+				print("\t\tMax number of nodes in list: " + str(self.max_nodes))
+
 				return node
 
 			# Expand Popped Node
 			self.expand(node)
-			# node.print()
 			# print('Heuristic: ' + str(self.g_cost(node, 'manhattan')))
 			# print(len(self.nodes))
+			print('\t\tThe best state to expand with a g(n) = ' + str(self.cost(node)) + ' and h(n) = ' + str(self.heuristic_mis(node)))
+			# node.print()
 			level_count += 1
 
-# Utility Testing
-def game_testing():
-
-
-    print("Starting Game!\n\n")
-
-    # Initialize Game
-    print("Initializing Game Engine...")
-    my_game = game()
-    my_game.print()
-
-
-    # Test Game Operators
-    print("Testing Basic Operations...")
-    my_game.move_up()
-    my_game.print()
-
-    my_game.move_down()
-    my_game.print()
-
-    my_game.move_left()
-    my_game.print()
-
-    my_game.move_right()
-    my_game.print()
-
-
-    # Rapid Test
-    print("Rapid Testing...")
-
-    print("Testing Up...")
-    for i in range(0, 10):
-    	my_game.move_up()
-    	my_game.print()
-
-
-    print("Testing Down...")
-    for i in range(0, 10):
-    	my_game.move_down()
-    	my_game.print()
-
-
-    print("Testing Left...")
-    for i in range(0, 10):
-    	my_game.move_left()
-    	my_game.print()
-
-
-    print("Testing Right...")
-    for i in range(0, 10):
-    	my_game.move_right()
-    	my_game.print()
-def shuffling_testing():
-
-	my_game = game()
-	my_game.shuffling()
-	return my_game.get_current_result(my_game.board)
-def start_game():
-	print('Starting w/ Sequence: ')
-	new_game = game(shuffling_testing())
-	return new_game
-def test_sequence(sequence, depth):
+# evaluates search algorithms performance 
+def evaluate_ai(sequence, depth):
 
 	my_ai = ai(sequence)
 
@@ -535,31 +512,25 @@ def test_sequence(sequence, depth):
 	end = time.time()
 	print("\t\tElapsed Time: " + str(end - start))
 
-# Main 
+# main 
 def main():
 
 	print('Main...')
 	print('Starting Test...')
 
-	sequence = '12345678 '
-	depth = 0
-	test_sequence(sequence, depth)
+	""" 
+		evaluate all three search algorithms
+		for each game board with known
+		solution depths
+	"""
+	evaluate_ai('12345678 ', 0)
+	evaluate_ai('123456 78', 2)
+	evaluate_ai('1235 6478', 4)
+	evaluate_ai('1365 2478', 8)
+	evaluate_ai('1365 7482', 12)
+	evaluate_ai('1675 3482', 16)
+	evaluate_ai('71248563 ', 20)
 
-	sequence = '123456 78'
-	depth = 2
-	test_sequence(sequence, depth)
-
-	sequence = '1235 6478'
-	depth = 4
-	test_sequence(sequence, depth)
-
-	sequence = '1365 2478'
-	depth = 8
-	test_sequence(sequence, depth)
-
-	sequence = '1365 7482'
-	depth = 12
-	test_sequence(sequence, depth)
 
 	print('Testing Over...')
 
